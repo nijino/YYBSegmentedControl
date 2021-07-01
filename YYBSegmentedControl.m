@@ -11,7 +11,7 @@
 @interface YYBSegmentedControl ()
 
 @property (nonatomic) UIView *bottomIndicatorView;
-@property (nonatomic) NSMutableArray *buttonArray;
+@property (nonatomic) NSMutableArray <UIButton *> *buttonArray;
 
 
 @end
@@ -37,12 +37,15 @@
     CGFloat oneSideGap = (self.bounds.size.width - stringLength) / (SegmentArray.count * 2);
     // 存储下一次按钮frame 原点 X 值
     CGFloat buttonOriginX = 0;
-    for (int i=0; i<SegmentArray.count; i++) {
+    for (int i = 0; i < SegmentArray.count; i++) {
         NSString *title = SegmentArray[i];
         CGSize textSize = [title sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:self.fontSize]}];
         
         CGFloat textLength = ceilf(textSize.width);
-        UIButton* button = [[UIButton alloc]initWithFrame:CGRectMake(buttonOriginX, 0, textLength + oneSideGap * 2, self.bounds.size.height - _buttonAndIndicatorSpacing - _indicatorHeight)];
+        UIButton* button = [[UIButton alloc] initWithFrame:CGRectMake(buttonOriginX,
+                                                                      0,
+                                                                      textLength + oneSideGap * 2,
+                                                                      self.bounds.size.height)];
         buttonOriginX = CGRectGetMaxX(button.frame);
         [button setTitle:SegmentArray[i] forState:UIControlStateNormal];
         [button.titleLabel setFont:[UIFont systemFontOfSize:self.fontSize]];
@@ -52,11 +55,11 @@
         [button addTarget:self action:@selector(changeTheSegment:) forControlEvents:UIControlEventTouchUpInside];
         // 画底部指示视图
         if (i == 0) {
-            [button.titleLabel setFont:[UIFont boldSystemFontOfSize:self.fontSize]];
-            _bottomIndicatorView = [[UIView alloc]initWithFrame:CGRectMake(0, self.bounds.size.height - _indicatorHeight, _indicatorWidth, _indicatorHeight)];
+            [button.titleLabel setFont:[UIFont boldSystemFontOfSize:self.selectFontSize]];
+            _bottomIndicatorView = [[UIView alloc]initWithFrame:CGRectMake(0, self.bounds.size.height - _indicatorHeight - _indicatorBottom, _indicatorWidth, _indicatorHeight)];
             _bottomIndicatorView.center = CGPointMake(button.center.x, _bottomIndicatorView.center.y);
             [_bottomIndicatorView setBackgroundColor:self.indicatorColor];
-            if (_makeIndicatorCornerRound) {
+            if (_roundedIndicator) {
                 _bottomIndicatorView.layer.cornerRadius = _indicatorHeight / 2.0;
             }
             [self addSubview:_bottomIndicatorView];
@@ -64,30 +67,29 @@
         [self addSubview:button];
         [self.buttonArray addObject:button];
         // 画分割线
-        if (i < SegmentArray.count - 1) {
-            UIView *separateView = [[UIView alloc] initWithFrame:CGRectMake(buttonOriginX, 4, 1, self.bounds.size.height - _buttonAndIndicatorSpacing - _indicatorHeight - 8)];
-            separateView.backgroundColor = self.separatorColor;
-            [self addSubview:separateView];
+        if (self.showSeparator) {
+            if (i < SegmentArray.count - 1) {
+                UIView *separateView = [[UIView alloc] initWithFrame:CGRectMake(buttonOriginX, _separatorVerticalInset, 1, self.bounds.size.height - _indicatorHeight - _separatorVerticalInset * 2)];
+                separateView.backgroundColor = self.separatorColor;
+                [self addSubview:separateView];
+            }
         }
     }
     [[self.buttonArray firstObject] setSelected:YES];
 }
 
--(void)changeTheSegment:(UIButton*)button
-{
+- (void)changeTheSegment:(UIButton*)button {
     [self selectSegment:button.tag animated:YES];
-    
 }
--(void)selectSegment:(NSInteger)segment animated:(BOOL)animated
-{
-    if (_selectedSegment!=segment) {
-        NSLog(@"我点击了");
+
+- (void)selectSegment:(NSInteger)segment animated:(BOOL)animated {
+    if (_selectedSegment != segment) {
         UIButton *lastSelectedButton = self.buttonArray[_selectedSegment];
         [lastSelectedButton setSelected:NO];
         [lastSelectedButton.titleLabel setFont:[UIFont systemFontOfSize:self.fontSize]];
         UIButton *selectedButton = self.buttonArray[segment];
         [selectedButton setSelected:YES];
-        [selectedButton.titleLabel setFont:[UIFont boldSystemFontOfSize:self.fontSize]];
+        [selectedButton.titleLabel setFont:[UIFont boldSystemFontOfSize:self.selectFontSize]];
         NSTimeInterval duration = 0;
         if (animated) duration = 0.3;
         [UIView animateWithDuration:duration animations:^{
@@ -128,8 +130,8 @@
     self.indicatorColor = [UIColor redColor];
     self.indicatorWidth = 26;
     self.indicatorHeight = 3;
-    self.buttonAndIndicatorSpacing = 3;
-    self.makeIndicatorCornerRound = YES;
+    self.indicatorBottom = 0;
+    self.roundedIndicator = YES;
 }
 
 @end
