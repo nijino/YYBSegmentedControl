@@ -123,6 +123,7 @@
     self.buttonArray = [NSMutableArray array];
     _selectedSegment = 0;
     self.fontSize = 26;
+    self.selectFontSize = 24;
     self.titleColor = [UIColor grayColor];
     self.selectedTitleColor = [UIColor blackColor];
     self.backgroundColor = [UIColor whiteColor];
